@@ -1,2 +1,5 @@
 # 44691-03-GDP-team1
-Our project is a web application based on task master
+
+## TaskMaster 
+
+TaskMaster is a multipurpose task management application that helps organizations and individuals stay organized on many platforms. It offers all-inclusive solutions for effective scheduling, task monitoring, and teamwork, guaranteeing seamless workflow management and productivity growth.

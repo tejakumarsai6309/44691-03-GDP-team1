@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head>
+    <!--/*/ <th:block th:include="fragments/head :: head"></th:block> /*/-->
+    <title>View Task</title>
+</head>
+
+<body>
+
+<header>
+    <!--/*/ <th:block th:include="fragments/header :: header('create-new-task')"></th:block> /*/-->
+</header>
+
+<main class="container">
+    <div class="card mb-3">
+
+        <h1 class="my-highest-header card-header">View Task</h1>
+
+        <div class="card card-body">
+
+            <!-- Task details (read-only) -->
+            <div class="form-group">
+                <label for="name" class="form-control-label">Task Name</label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" th:field="*{task.name}" id="name" readonly/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-control-label">Task Description</label>
+                <textarea class="form-control" th:field="*{task.description}" id="description" readonly></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="taskPriority" class="form-control-label">Task Priority</label>
+                <textarea class="form-control" th:field="*{task.taskPriority}" id="taskPriority" readonly></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="date" class="form-control-label">Date</label>
+                <div class="input-group mb-3">
+                    <input type="datetime-local" class="form-control" th:field="*{task.date}" id="date" readonly/>
+                </div>
+            </div>
+
+           <!-- Display existing comments -->
+<div class="comments-section">
+    <h3>Comments</h3>
+    <ul>
+        <li th:each="comment : ${comments}">
+            <p><strong th:text="${comment.user.name}"></strong>: <span th:text="${comment.content}"></span></p> 
+        </li>
+    </ul>
+</div>
+
+<!-- Form to add a new comment -->
+<div class="add-comment-form">
+    <h3>Add a Comment</h3>
+    <form th:action="@{'/task/' + ${task.id} + '/addComment'}" method="post">
+        <div class="form-group">
+            <label for="content">Comment</label>
+            <input type="text" name="content"  placeholder="Comments..." th:value="${content}">
+        </div>
+        <input type="submit" value="Add Comment" class="btn btn-primary"/>
+    </form>
+</div>
+           
+            </div>
+        </div>
+</main>
+
+
+<footer class="footer">
+    <!--/*/ <th:block th:include="fragments/footer :: footer"></th:block> /*/-->
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="eng"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!--/*/ <th:block th:include="fragments/head :: head"></th:block> /*/-->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Task Manager Dashboard</title>
+    
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            background-color: #28a745;
+        }
+        .task-card {
+            margin-bottom: 20px;
+        }
+        .task-completed {
+            text-decoration: line-through;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body th:data-complete-tasks="${completeTasksByPriority}" th:data-incomplete-tasks="${incompleteTasksByPriority}" 
+th:assign-task-count="${assigneeTaskCounts}">
+<header >
+    <!--/*/ <th:block th:include="fragments/header :: header('home')"></th:block> /*/-->
+    
+</header>
+
+<main class="container my-5">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h2 class="h4">Project Overview</h2>
+        
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-light text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Tasks</h5>
+                    <p class="display-4" th:text="${totalTasks}">100</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Completed Tasks</h5>
+                    <p class="display-4 text-success" th:text="${completedTasks}">61</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Incomplete Tasks</h5>
+                    <p class="display-4 text-danger" th:text="${incompleteTasks}">39</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Overdue Tasks</h5>
+                    <p class="display-4 text-warning" th:text="${overdueTasks}">39</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Progress and Metrics -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Task Completion</h5>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar"
+                         th:style="'width: ' + ${taskCompletionPercentage} + '%'"
+                         th:aria-valuenow="${taskCompletionPercentage}" aria-valuemin="0" aria-valuemax="100">
+                        <span th:text="${taskCompletionPercentage} + '%'">61%</span>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Average Task Cycle Time -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                <h5 class="card-title">Avg. Task Cycle Time</h5>
+                <p class="display-4" th:text="${avgTaskCycleTime} + ' Hours'">198.69 Hours</p>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <!-- Estimated vs Actual Hours by Project -->
+        <div sec:authorize="hasRole('ADMIN')" class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Assignee vs TaskCount</h5>
+                    <canvas id="assigneeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Incomplete and Overdue Tasks by Priority -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Incomplete and Overdue Tasks by Priority</h5>
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="footer">
+    <!--/*/ <th:block th:include="fragments/footer :: footer"></th:block> /*/-->
+</footer>
+
+<!-- Chart.js Script to Populate Charts -->
+<script>
+   
+ 	// Assume these variables are populated from the server-side
+    var completeTasksByPriority = JSON.parse(document.body.getAttribute('data-complete-tasks'));
+    var incompleteTasksByPriority = JSON.parse(document.body.getAttribute('data-incomplete-tasks'));
+
+    console.log("complete", completeTasksByPriority);
+    console.log("incomplete", incompleteTasksByPriority);
+
+    // Incomplete and Overdue Tasks by Priority
+    const priorityChart = document.getElementById('priorityChart').getContext('2d');
+    const priorityChartData = {
+        labels: ['High', 'Medium', 'Low'],
+        datasets: [{
+            label: 'Complete',
+            backgroundColor: 'rgba(255, 206, 86, 0.6)',
+            data: completeTasksByPriority
+        }, {
+            label: 'Incomplete',
+            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+            data: incompleteTasksByPriority  
+        }]
+    };
+
+    new Chart(priorityChart, {
+        type: 'bar',
+        data: priorityChartData
+    });
+    
+    const pieColors = [
+        'rgba(72, 201, 176, 0.8)',    // Aqua Green
+        'rgba(245, 171, 53, 0.8)',    // Gold
+        'rgba(231, 76, 60, 0.8)',     // Coral Red
+        'rgba(52, 152, 219, 0.8)',    // Sky Blue
+        'rgba(155, 89, 182, 0.8)',    // Amethyst
+        'rgba(46, 204, 113, 0.8)',    // Emerald Green
+        'rgba(241, 196, 15, 0.8)',    // Sunflower Yellow
+        'rgba(39, 174, 96, 0.8)',     // Forest Green
+        'rgba(231, 111, 81, 0.8)',    // Sunset Orange
+        'rgba(127, 140, 141, 0.8)'    // Slate Gray
+    ];
+
+
+    console.log("Raw assigneeTaskCounts:", document.body.getAttribute('assign-task-count'));
+    var assigneeTaskCounts = JSON.parse(document.body.getAttribute('assign-task-count'));
+    console.log("Parsed assigneeTaskCounts:", assigneeTaskCounts);
+    
+ // Chart for Task Distribution by Assignee
+    const assigneeChart = document.getElementById('assigneeChart').getContext('2d');
+    const assigneeChartData = {
+        labels: Object.keys(assigneeTaskCounts),
+        datasets: [{
+            label: 'Tasks Assigned',
+            backgroundColor: pieColors.slice(0, Object.keys(assigneeTaskCounts).length),  // Use colors dynamically based on assignees
+            data: Object.values(assigneeTaskCounts)
+        }]
+    };
+
+    new Chart(assigneeChart, {
+        type: 'pie',
+        data: assigneeChartData
+    });
+</script>
+
+</body>
+</html>

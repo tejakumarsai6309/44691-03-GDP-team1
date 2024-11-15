@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- COMMENT -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta property="og:title" content="Task manager" />
+    <meta property="og:url" content=" https://task-manager-r.herokuapp.com" />
+    <meta property="og:image" content="images/task-manager.png" />
+    <base href="/"/>
+
+    <link rel="stylesheet" href="/static/css/flatly/bootstrap.css" th:href="@{css/flatly/bootstrap.css}"/>
+    <link rel="stylesheet" href="/static/css/flatly/bootstrap.min.css" th:href="@{css/flatly/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="/static/css/mystyle.css" th:href="@{css/mystyle.css}"/>
+    <script th:src="@{webjars/jquery/jquery.min.js}"></script>
+    <script th:src="@{webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+          integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
+          crossorigin="anonymous">
+    <!--  -->
+    
+    <title>Task Calendar</title>
+    <style>
+        body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: #007BFF;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+footer {
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 1rem;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin-top: 60px; /* Adjust for the fixed header */
+    margin-bottom: 60px; /* Adjust for the fixed footer */
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.calendar {
+    width: 150%;
+    max-width: 1400px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    height: calc(100vh - 100px); /* Adjust to fit between header and footer */
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    margin-bottom: 20px;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 2rem;
+    color: #007BFF;
+}
+
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-gap: 20px;
+    width: 100%;
+    height: calc(100% - 60px); /* Adjust to fit the remaining space */
+}
+
+.day {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    transition: background 0.3s, border-color 0.3s;
+    font-size: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.05);
+    height: 130%;
+}
+
+.day:hover {
+    background: #eaeaea;
+    border-color: #007BFF;
+}
+.day-content {
+    display: flex;
+    flex-direction: column; /* Stack day number and task name vertically */
+    align-items: center; /* Center align */
+    font-size: 1.5rem;
+}
+
+.task-name {
+    font-size: 0.8rem; /* Smaller font size for task names */
+    color: #555; /* Slightly darker color for visibility */
+    margin-top: 5px; /* Add some space above the task name */
+    text-align: center; /* Center align task names */
+}
+
+.nav-button {
+    cursor: pointer;
+    align-items: center;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    transition: background 0.3s;
+    font-size: 1.2rem;
+}
+
+.nav-button:hover {
+    background: #0056b3;
+}
+
+@media (max-width: 768px) {
+    .day {
+        font-size: 1.2rem;
+    }
+}
+        
+    </style>
+</head>
+<body th:task-By-Date="${taskByDate}" th:year="${year}" th:month="${month}" >
+
+<header>
+ <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <a class="navbar-brand mr-4" href="/index">Task Manager</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
+                aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarColor01">
+            <ul class="navbar-nav mr-auto">
+
+                <!--Home-->
+                <li th:class="${activeTab == 'home'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                             sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/index">Home</a>
+                </li>
+
+                <!--Tasks list-->
+                <li th:class="${activeTab == 'tasks-list'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/tasks">Tasks List</a>
+                </li>
+                
+                <!--Calander-->
+                <li th:class="${activeTab != 'calendar'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/calendar">Calendar</a>
+                </li>
+
+                <!--Assign tasks-->
+                <li th:class="${activeTab == 'assign-tasks'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="hasRole('ROLE_ADMIN')">
+                    <a class="nav-link" href="/assignment">Assign Tasks</a>
+                </li>
+
+                <!--Create New Task-->
+                <li th:class="${activeTab == 'create-new-task'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/task/create">Create New Task</a>
+                </li>
+
+                <!--Users List-->
+                <li th:class="${activeTab == 'users-list'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/users">Users List</a>
+                </li>
+
+                <!--Profile-->
+                <li th:class="${activeTab == 'profile'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/profile">Your Profile</a>
+                </li>
+
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/profile" sec:authentication="name"></a>
+                </li>
+                <li th:class="${activeTab == 'register'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+                <li th:class="${activeTab == 'login'}? 'active nav-item mr-4' : 'nav-item mr-4'"
+                    sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" href="/">Login</a>
+                </li>
+                <li>
+                    <form class="form-inline my-2 my-lg-0"
+                          th:action="@{logout}" method="post"
+                          sec:authorize="isAuthenticated()">
+                        <button class="btn btn-secondary my-2 my-sm-0 mr-4" type="submit">Log out</button>
+                    </form>
+                </li>
+            </ul>
+
+        </div>
+    </nav>
+</header>
+
+<div class="content">
+    <div class="calendar">
+        <div class="header">
+            <button class="nav-button" onclick="prevMonth()">&#9664;</button>
+            <h2 id="month-year"></h2>
+            <button class="nav-button" onclick="nextMonth()">&#9654;</button>
+        </div>
+        <div class="days" id="calendar-days"></div>
+    </div>
+</div>
+
+<!-- footer th:fragment="footer" >
+    <hr>
+    <p class="text-muted">Copyright &copy; &nbsp; Team 01</p>
+</footer-->
+
+<script>
+console.log("Raw taskByDate:", document.body.getAttribute('task-By-Date'));
+var taskByDate = JSON.parse(document.body.getAttribute('task-By-Date'));
+console.log("Parsed taskByDate:", taskByDate);
+
+    const monthYearElement = document.getElementById('month-year');
+    const calendarDaysElement = document.getElementById('calendar-days');
+	
+    const givenMonth = JSON.parse(document.body.getAttribute('month'));
+    console.log("taskByMonth:", givenMonth);
+
+    const givenYear = JSON.parse(document.body.getAttribute('year'));
+    console.log("taskBy Year:", givenYear);
+
+    let currentDate = new Date(givenYear,givenMonth-1);
+    console.log("currentDate:", currentDate);
+
+    function renderCalendar() {
+        const month = currentDate.getMonth();
+        const year = currentDate.getFullYear();
+
+        monthYearElement.innerText = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        const firstDayOfMonth = new Date(year, month, 1);
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+        const totalDays = lastDayOfMonth.getDate();
+
+        calendarDaysElement.innerHTML = '';
+
+        // Fill in the blanks for days of the week
+        for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
+            const blankDay = document.createElement('div');
+            blankDay.className = 'day';
+            calendarDaysElement.appendChild(blankDay);
+        }
+
+        // Create day elements
+        for (let day = 1; day <= totalDays; day++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'day';
+
+            // Create a container for day number and task names
+            const dayContent = document.createElement('div');
+            dayContent.className = 'day-content';
+            dayContent.innerText = day; // Display the day number
+
+            // Check if there are tasks for the current day and display them
+            if (taskByDate[day]) {
+                const taskName = document.createElement('div');
+                taskName.className = 'task-name';
+                taskName.innerText = taskByDate[day];
+                dayContent.appendChild(taskName); // Add the task name under the day number
+            }
+
+            dayElement.appendChild(dayContent); // Add the content to the day element
+            calendarDaysElement.appendChild(dayElement);
+        }
+    }
+
+    function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+
+        const month = currentDate.getMonth() + 1; 
+        const year = currentDate.getFullYear();
+
+        // Redirect with updated year and month
+        window.location.href = `/calendar/${year}/${month}`;
+
+    }
+
+    function prevMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+
+        const month = currentDate.getMonth() + 1; 
+        const year = currentDate.getFullYear();
+
+        // Redirect with updated year and month
+        window.location.href = `/calendar/${year}/${month}`;
+
+    }
+
+    renderCalendar();
+</script>
+
+
+</body>
+</html>
